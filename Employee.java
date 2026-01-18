@@ -1,58 +1,36 @@
 package Project;
 
-import java.util.ArrayList;
-
 public class Employee extends Person implements EmployeeData {
 
     private int id;
-
-    private String PhoneNumber;
+    private String phoneNumber;
     private int salary;
-    int[] paidMonths;
+    private int[] paidMonths; // index 0..11 = January..December
 
-    Employee(int id, String name, int age, String phoneNumber, int salary, int s[]) {
+        @Override
+    public String getRole() {
+        return "Employee";
+    }
+
+public Employee(int id, String name, int age,
+                    String phoneNumber, int salary, int[] paidMonths) {
         super(name, age);
         this.id = id;
-        this.PhoneNumber = phoneNumber;
+        this.phoneNumber = phoneNumber;
         this.salary = salary;
-        paidMonths = new int[12];
-        for (int i = 0; i < 12; i++) {
-            paidMonths[i] = s[i];
+
+        if (paidMonths != null && paidMonths.length == 12) {
+            this.paidMonths = paidMonths.clone();
+        } else {
+            this.paidMonths = new int[12]; // all 0 (unpaid)
         }
     }
 
-    Employee(int id, String name, int age, String phoneNumber, int salary) {
-        super(name, age);
-        this.id = id;
-        this.PhoneNumber = phoneNumber;
-        this.salary = salary;
-        paidMonths = new int[12];
-
-    }
-
-    @Override
-    public String getName() {
-        return this.name;
-    }
-
-    @Override
-    public int getAge() {
-        return this.age;
-    }
-
-    @Override
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    @Override
-    public void setAge(int age) {
-        this.age = age;
-    }
+    // ==== EmployeeData implementation ====
 
     @Override
     public int getSalary() {
-        return this.salary;
+        return salary;
     }
 
     @Override
@@ -62,17 +40,17 @@ public class Employee extends Person implements EmployeeData {
 
     @Override
     public String getPhoneNumber() {
-        return this.PhoneNumber;
+        return phoneNumber;
     }
 
     @Override
-    public void setPhoneNumber(String PhoneNumber) {
-        this.PhoneNumber = PhoneNumber;
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 
     @Override
     public int getId() {
-        return this.id;
+        return id;
     }
 
     @Override
@@ -80,48 +58,48 @@ public class Employee extends Person implements EmployeeData {
         this.id = id;
     }
 
+    // returns something like "1,0,0,1,0,0,0,0,0,0,0,0"
     @Override
     public String getPaidMonths() {
-        String mon = "";
+        StringBuilder sb = new StringBuilder();
         for (int i = 0; i < paidMonths.length; i++) {
-            mon += paidMonths[i] + " ";
+            if (i > 0) sb.append(",");
+            sb.append(paidMonths[i]);
         }
-        return mon;
+        return sb.toString();
     }
 
     @Override
     public void addMonth(String month) {
-        if (month.equalsIgnoreCase("January")) {
-            paidMonths[0] = 1;
-        } else if (month.equalsIgnoreCase("February")) {
-            paidMonths[1] = 1;
-        } else if (month.equalsIgnoreCase("March")) {
-            paidMonths[2] = 1;
-        } else if (month.equalsIgnoreCase("April")) {
-            paidMonths[3] = 1;
-        } else if (month.equalsIgnoreCase("May")) {
-            paidMonths[4] = 1;
-        } else if (month.equalsIgnoreCase("June")) {
-            paidMonths[5] = 1;
-        } else if (month.equalsIgnoreCase("July")) {
-            paidMonths[6] = 1;
-        } else if (month.equalsIgnoreCase("August")) {
-            paidMonths[7] = 1;
-        } else if (month.equalsIgnoreCase("September")) {
-            paidMonths[8] = 1;
-        } else if (month.equalsIgnoreCase("October")) {
-            paidMonths[9] = 1;
-        } else if (month.equalsIgnoreCase("November")) {
-            paidMonths[10] = 1;
-        } else if (month.equalsIgnoreCase("December")) {
-            paidMonths[11] = 1;
-        } else {
-            System.out.println("Month name not found");
+        int index = monthNameToIndex(month);
+        if (index < 0) {
+            throw new IllegalArgumentException("Unknown month: " + month);
+        }
+        paidMonths[index] = 1;
+    }
+
+    private int monthNameToIndex(String month) {
+        if (month == null) return -1;
+        String m = month.trim().toLowerCase();
+
+        switch (m) {
+            case "january":   return 0;
+            case "february":  return 1;
+            case "march":     return 2;
+            case "april":     return 3;
+            case "may":       return 4;
+            case "june":      return 5;
+            case "july":      return 6;
+            case "august":    return 7;
+            case "september": return 8;
+            case "october":   return 9;
+            case "november":  return 10;
+            case "december":  return 11;
+            default:          return -1;
         }
     }
 
     public int[] getPaidMonthsArray() {
-        return paidMonths;
+        return paidMonths.clone();
     }
-
 }

@@ -1,0 +1,360 @@
+package Project;
+
+import javax.swing.*;
+import java.awt.*;
+
+public class PayrollGUI extends JFrame {
+
+    private JTextArea outputArea;
+    private JLabel statusLabel;
+
+    public PayrollGUI() {
+        setTitle("Payroll Management System");
+        setSize(900, 550);
+        setLocationRelativeTo(null);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        // ====== MAIN LAYOUT ======
+        setLayout(new BorderLayout(0, 0));
+
+        // Top header
+        add(createHeaderPanel(), BorderLayout.NORTH);
+
+        // Left menu
+        add(createLeftMenuPanel(), BorderLayout.WEST);
+
+        // Center content
+        add(createCenterPanel(), BorderLayout.CENTER);
+
+        // Bottom status bar
+        add(createStatusBar(), BorderLayout.SOUTH);
+    }
+
+    // ---------- HEADER ----------
+    private JPanel createHeaderPanel() {
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(new Color(33, 150, 243)); // blue
+
+        JLabel title = new JLabel(" Payroll Management System ");
+        title.setForeground(Color.WHITE);
+        title.setFont(new Font("Segoe UI", Font.BOLD, 26));
+
+        JLabel subtitle = new JLabel(" Manage employees, payroll, and payments easily ");
+        subtitle.setForeground(new Color(225, 245, 254));
+        subtitle.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+
+        JPanel textPanel = new JPanel();
+        textPanel.setOpaque(false);
+        textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
+        textPanel.add(Box.createVerticalStrut(8));
+        textPanel.add(title);
+        textPanel.add(Box.createVerticalStrut(4));
+        textPanel.add(subtitle);
+        textPanel.add(Box.createVerticalStrut(8));
+
+        header.setBorder(BorderFactory.createEmptyBorder(5, 20, 5, 20));
+        header.add(textPanel, BorderLayout.WEST);
+
+        return header;
+    }
+
+    // ---------- LEFT MENU ----------
+    private JPanel createLeftMenuPanel() {
+        JPanel left = new JPanel();
+        left.setBackground(new Color(250, 250, 250));
+        left.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, new Color(220, 220, 220)));
+        left.setLayout(new BoxLayout(left, BoxLayout.Y_AXIS));
+
+        JLabel menuLabel = new JLabel(" Actions");
+        menuLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        menuLabel.setBorder(BorderFactory.createEmptyBorder(15, 15, 10, 15));
+
+        left.add(menuLabel);
+        left.add(Box.createVerticalStrut(5));
+
+        JButton addButton     = createMenuButton(" Add Employee");
+        JButton removeButton  = createMenuButton("🗑  Remove Employee");
+        JButton listButton    = createMenuButton("📋  List Employees");
+        JButton detailsButton = createMenuButton("📄  Payroll Details");
+        JButton payButton     = createMenuButton("💰  Make Payment");
+        JButton clearButton   = createMenuButton("🧹  Clear Output");
+        JButton exitButton    = createMenuButton("🚪  Exit");
+
+        // Actions
+        addButton.addActionListener(e -> addEmployeeUI());
+        removeButton.addActionListener(e -> removeEmployeeUI());
+        listButton.addActionListener(e -> {
+            String data = EmployeeDataHandle.getEmployeeDataString();
+            outputArea.setText(data);
+            setStatus("Loaded employee list.");
+        });
+        detailsButton.addActionListener(e -> payrollDetailsUI());
+        payButton.addActionListener(e -> payUI());
+        clearButton.addActionListener(e -> {
+            outputArea.setText("");
+            setStatus("Output cleared.");
+        });
+        exitButton.addActionListener(e -> {
+            int choice = JOptionPane.showConfirmDialog(
+                    this,
+                    "Are you sure you want to exit?",
+                    "Confirm Exit",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE
+            );
+            if (choice == JOptionPane.YES_OPTION) {
+                System.exit(0);
+            }
+        });
+
+        // Add to panel
+        left.add(addButton);
+        left.add(removeButton);
+        left.add(listButton);
+        left.add(detailsButton);
+        left.add(payButton);
+        left.add(clearButton);
+
+        left.add(Box.createVerticalGlue());
+        left.add(exitButton);
+        left.add(Box.createVerticalStrut(15));
+
+        return left;
+    }
+
+    private JButton createMenuButton(String text) {
+        JButton btn = new JButton(text);
+        btn.setFocusPainted(false);
+        btn.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        btn.setAlignmentX(Component.CENTER_ALIGNMENT);
+        btn.setMaximumSize(new Dimension(220, 40));
+        btn.setMinimumSize(new Dimension(180, 35));
+        btn.setBackground(Color.WHITE);
+        btn.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(220, 220, 220)),
+                BorderFactory.createEmptyBorder(5, 10, 5, 10)
+        ));
+
+        // Hover effect
+        btn.addChangeListener(e -> {
+            ButtonModel model = btn.getModel();
+            if (model.isRollover()) {
+                btn.setBackground(new Color(227, 242, 253));
+            } else {
+                btn.setBackground(Color.WHITE);
+            }
+        });
+
+        return btn;
+    }
+
+    // ---------- CENTER PANEL ----------
+    private JPanel createCenterPanel() {
+        JPanel center = new JPanel(new BorderLayout());
+        center.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        center.setBackground(Color.WHITE);
+
+        JLabel lbl = new JLabel(" Output");
+        lbl.setFont(new Font("Segoe UI", Font.BOLD, 15));
+
+        outputArea = new JTextArea();
+        outputArea.setEditable(false);
+        outputArea.setFont(new Font("Consolas", Font.PLAIN, 13));
+        outputArea.setMargin(new Insets(8, 8, 8, 8));
+        outputArea.setLineWrap(true);
+        outputArea.setWrapStyleWord(true);
+
+        JScrollPane scrollPane = new JScrollPane(outputArea);
+        scrollPane.setBorder(BorderFactory.createLineBorder(new Color(220, 220, 220)));
+
+        center.add(lbl, BorderLayout.NORTH);
+        center.add(scrollPane, BorderLayout.CENTER);
+
+        return center;
+    }
+
+    // ---------- STATUS BAR ----------
+    private JPanel createStatusBar() {
+        JPanel status = new JPanel(new BorderLayout());
+        status.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, new Color(220, 220, 220)));
+        status.setBackground(new Color(250, 250, 250));
+
+        statusLabel = new JLabel(" Ready.");
+        statusLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        statusLabel.setBorder(BorderFactory.createEmptyBorder(3, 10, 3, 10));
+
+        status.add(statusLabel, BorderLayout.WEST);
+        return status;
+    }
+
+    private void setStatus(String msg) {
+        statusLabel.setText(" " + msg);
+    }
+
+    // =====================================================
+    //              BUSINESS ACTION HANDLERS
+    // =====================================================
+
+    private void addEmployeeUI() {
+        try {
+            String idStr = JOptionPane.showInputDialog(this, "Enter employee id:");
+            if (idStr == null) return;
+            int id = Integer.parseInt(idStr.trim());
+
+            String name = JOptionPane.showInputDialog(this, "Enter employee name:");
+            if (name == null || name.trim().isEmpty()) {
+                showError("Name cannot be empty.");
+                return;
+            }
+
+            String ageStr = JOptionPane.showInputDialog(this, "Enter employee age:");
+            if (ageStr == null) return;
+            int age = Integer.parseInt(ageStr.trim());
+
+            String phone = JOptionPane.showInputDialog(this, "Enter employee phone number:");
+            if (phone == null || phone.trim().isEmpty()) {
+                showError("Phone number cannot be empty.");
+                return;
+            }
+
+            String salaryStr = JOptionPane.showInputDialog(this, "Enter employee salary:");
+            if (salaryStr == null) return;
+            int salary = Integer.parseInt(salaryStr.trim());
+
+            int[] paidMonths = new int[12]; // all 0 initially
+
+            Employee emp = new Employee(id, name.trim(), age, phone.trim(), salary, paidMonths);
+            boolean added = EmployeeDataHandle.addEmployee(emp);
+
+            if (added) {
+                showInfo("Employee added successfully.");
+                setStatus("Employee " + id + " added.");
+            } else {
+                showError("Employee with id " + id + " already exists.");
+                setStatus("Add failed: duplicate id.");
+            }
+
+        } catch (NumberFormatException ex) {
+            showError("Invalid number format. Please enter valid integers for id, age, and salary.");
+            setStatus("Error: invalid numeric input.");
+        } catch (Exception ex) {
+            showError("Error while adding employee: " + ex.getMessage());
+            setStatus("Unexpected error while adding.");
+        }
+    }
+
+    private void removeEmployeeUI() {
+        try {
+            String idStr = JOptionPane.showInputDialog(this, "Enter employee id to remove:");
+            if (idStr == null) return;
+            int id = Integer.parseInt(idStr.trim());
+
+            boolean removed = EmployeeDataHandle.removeEmployee(id);
+            if (removed) {
+                showInfo("Employee removed successfully.");
+                setStatus("Employee " + id + " removed.");
+            } else {
+                showError("Employee id " + id + " not found.");
+                setStatus("Remove failed: id not found.");
+            }
+        } catch (NumberFormatException ex) {
+            showError("Invalid id. Please enter a valid integer.");
+            setStatus("Error: invalid id input.");
+        } catch (Exception ex) {
+            showError("Error while removing employee: " + ex.getMessage());
+            setStatus("Unexpected error while removing.");
+        }
+    }
+
+    private void payrollDetailsUI() {
+        try {
+            String idStr = JOptionPane.showInputDialog(this, "Enter employee id for payroll details:");
+            if (idStr == null) return;
+            int id = Integer.parseInt(idStr.trim());
+
+            String details = EmployeeDataHandle.getPayrollDetailsString(id);
+            outputArea.setText(details);
+            setStatus("Loaded payroll details for id " + id + ".");
+        } catch (NumberFormatException ex) {
+            showError("Invalid id. Please enter a valid integer.");
+            setStatus("Error: invalid id input.");
+        } catch (Exception ex) {
+            showError("Error while fetching payroll details: " + ex.getMessage());
+            setStatus("Unexpected error while fetching details.");
+        }
+    }
+
+    private void payUI() {
+        try {
+            String idStr = JOptionPane.showInputDialog(this, "Enter employee id to pay:");
+            if (idStr == null) return;
+            int id = Integer.parseInt(idStr.trim());
+
+            String month = JOptionPane.showInputDialog(this, "Enter month name (e.g., January):");
+            if (month == null || month.trim().isEmpty()) {
+                showError("Month cannot be empty.");
+                return;
+            }
+
+            if (!isValidMonth(month)) {
+                showError("Invalid month name. Please enter a correct month (January..December).");
+                return;
+            }
+
+            boolean success = EmployeeDataHandle.payDatabase(id, month.trim());
+            if (success) {
+                showInfo("Payment recorded successfully.");
+                setStatus("Payment recorded for id " + id + " (" + month + ").");
+            } else {
+                showError("Could not process payment. Check employee id or month.");
+                setStatus("Payment failed.");
+            }
+
+        } catch (NumberFormatException ex) {
+            showError("Invalid id. Please enter a valid integer.");
+            setStatus("Error: invalid id input.");
+        } catch (Exception ex) {
+            showError("Error while processing payment: " + ex.getMessage());
+            setStatus("Unexpected error while paying.");
+        }
+    }
+
+    private boolean isValidMonth(String month) {
+        String[] months = {
+                "January","February","March","April","May","June",
+                "July","August","September","October","November","December"
+        };
+        for (String m : months) {
+            if (m.equalsIgnoreCase(month.trim())) return true;
+        }
+        return false;
+    }
+
+    // ---------- helpers ----------
+    private void showError(String msg) {
+        JOptionPane.showMessageDialog(this, msg, "Error", JOptionPane.ERROR_MESSAGE);
+    }
+
+    private void showInfo(String msg) {
+        JOptionPane.showMessageDialog(this, msg, "Info", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    // ---------- MAIN: run GUI ----------
+    public static void main(String[] args) {
+        // Try to use Nimbus look & feel (nicer than default)
+        try {
+            for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        } catch (Exception ignored) {}
+
+        SwingUtilities.invokeLater(() -> {
+            PayrollGUI gui = new PayrollGUI();
+            gui.setVisible(true);
+        });
+    }
+}
+
